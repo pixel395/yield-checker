@@ -1,15 +1,5 @@
 {
-  "updated": "2026-04-10T00:00:00Z",
-  "source": "static",
-  "stocks": {
-    "9029": { "price": 1892, "yield": 2.6426, "change": 0 },
-    "9057": { "price": 3490, "yield": 2.7507, "change": 0 },
-    "9069": { "price": 1867, "yield": 2.6780, "change": 0 },
-    "9072": { "price": 4805, "yield": 1.5401, "change": 0 },
-    "7267": { "price": 1269, "yield": 5.5163, "change": 0 },
-    "7272": { "price": 1184, "yield": 4.2230, "change": 0 },
-    "8630": { "price": 6017, "yield": 2.4929, "change": 0 },
-    "8725": { "price": 4136, "yield": 3.7475, "change": 0 },
-    "8766": { "price": 7243, "yield": 2.9130, "change": 0 }
-  }
+  "updated": "2026-04-09T22:33:09Z",
+  "source": "stooq",
+  "stocks": {}
 }
