@@ -1,0 +1,17 @@
+{
+  "name": "利回りチェッカー",
+  "short_name": "利回り",
+  "description": "登録銘柄の配当利回りをリアルタイムで監視",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1a1a2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

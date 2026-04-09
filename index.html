@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="利回りチェッカー">
+    <link rel="manifest" href="/manifest.json">
+    <title>利回りチェッカー</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
+            background: #f0f2f5;
+            color: #1a1a2e;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #1a1a2e;
+            color: white;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .header-title { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
+        .header-subtitle { font-size: 11px; color: #aab; margin-top: 2px; }
+
+        .refresh-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: opacity 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .refresh-btn:active { opacity: 0.7; }
+        .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
+
+        .last-updated {
+            text-align: center;
+            padding: 7px 16px;
+            font-size: 11px;
+            color: #888;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1px;
+            background: #e8e8e8;
+            border-bottom: 1px solid #ddd;
+        }
+        .stat-box {
+            background: white;
+            text-align: center;
+            padding: 12px 8px;
+        }
+        .stat-label { font-size: 10px; color: #888; margin-bottom: 4px; }
+        .stat-value { font-size: 22px; font-weight: 800; color: #1a1a2e; }
+        .stat-value.green { color: #00b84c; }
+
+        .filter-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 2px solid #eee;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+
+        .filter-tab {
+            padding: 10px 14px;
+            font-size: 12px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            white-space: nowrap;
+            color: #999;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .filter-tab.active {
+            color: #e94560;
+            border-bottom: 2px solid #e94560;
+            font-weight: 700;
+        }
+
+        .stock-list { padding: 12px; }
+
+        .stock-card {
+            background: white;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            border-left: 4px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .stock-card.achieved {
+            border-left-color: #00b84c;
+            background: linear-gradient(to right, #f0fff5, white 30%);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .stock-name { font-size: 15px; font-weight: 700; }
+        .stock-code {
+            font-size: 11px;
+            color: #aaa;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .change-pct {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 1px 5px;
+            border-radius: 6px;
+        }
+        .change-pct.up   { color: #d32f2f; background: #ffebee; }
+        .change-pct.down { color: #1565c0; background: #e3f2fd; }
+        .change-pct.flat { color: #666;    background: #f5f5f5; }
+
+        .achieved-badge {
+            background: #00b84c;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 800;
+            display: none;
+            letter-spacing: 1px;
+            animation: pop 0.3s ease;
+        }
+        .stock-card.achieved .achieved-badge { display: inline-block; }
+
+        @keyframes pop {
+            0%   { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1);   opacity: 1; }
+        }
+
+        .stock-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .metric {
+            text-align: center;
+            background: #f7f8fa;
+            border-radius: 10px;
+            padding: 8px 4px;
+        }
+        .metric-label { font-size: 10px; color: #999; margin-bottom: 3px; }
+        .metric-value { font-size: 15px; font-weight: 800; color: #1a1a2e; }
+        .yield-current { color: #e94560; }
+        .stock-card.achieved .yield-current { color: #00b84c; }
+        .yield-target { font-size: 14px; color: #888; }
+
+        .yield-bar-wrap {
+            background: #f0f2f5;
+            border-radius: 8px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        .yield-bar {
+            height: 100%;
+            border-radius: 8px;
+            background: #e94560;
+            transition: width 0.6s ease;
+        }
+        .stock-card.achieved .yield-bar { background: #00b84c; }
+
+        .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+        .tag {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .tag-industry  { background: #e8f0fe; color: #1a5dab; }
+        .tag-defensive { background: #e6f7ee; color: #1c7c40; }
+        .tag-cyclical  { background: #fff3e0; color: #b56300; }
+
+        .ext-links {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .ext-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            padding: 7px 4px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1px solid;
+            transition: opacity 0.15s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ext-link:active { opacity: 0.6; }
+        .ext-link.irbank    { color: #1565c0; background: #e8f0fe; border-color: #bbdefb; }
+        .ext-link.buffett   { color: #6a1b9a; background: #f3e5f5; border-color: #e1bee7; }
+        .ext-link.kabutan   { color: #b71c1c; background: #ffebee; border-color: #ffcdd2; }
+
+        .loading {
+            text-align: center;
+            padding: 50px 20px;
+            color: #999;
+            font-size: 14px;
+        }
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #eee;
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-banner {
+            background: #fff3f3;
+            border: 1px solid #ffcdd2;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px;
+            font-size: 12px;
+            color: #c62828;
+            text-align: center;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .source-badge {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 8px;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        .source-yahoo  { background: #e3f2fd; color: #1565c0; }
+        .source-stooq  { background: #fff8e1; color: #f57f17; }
+        .source-static { background: #f5f5f5; color: #999; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="header-title">📈 利回りチェッカー</div>
+        <div class="header-subtitle">Yahoo Finance リアルタイム</div>
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="fetchAllStocks()">
+        <span id="refreshIcon">↻</span> 更新
+    </button>
+</header>
+
+<div class="last-updated" id="lastUpdated">読み込み中...</div>
+
+<div class="stats-bar">
+    <div class="stat-box">
+        <div class="stat-label">登録銘柄</div>
+        <div class="stat-value" id="totalCount">9</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">達成</div>
+        <div class="stat-value green" id="achievedCount">-</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-label">達成率</div>
+        <div class="stat-value" id="achievedRate">-</div>
+    </div>
+</div>
+
+<div class="filter-tabs">
+    <button class="filter-tab active" onclick="filterStocks('all', this)">すべて</button>
+    <button class="filter-tab" onclick="filterStocks('achieved', this)">✅ 達成</button>
+    <button class="filter-tab" onclick="filterStocks('陸運業', this)">陸運業</button>
+    <button class="filter-tab" onclick="filterStocks('輸送用機器', this)">輸送用機器</button>
+    <button class="filter-tab" onclick="filterStocks('保険業', this)">保険業</button>
+    <button class="filter-tab" onclick="filterStocks('ディフェンシブ', this)">ディフェンシブ</button>
+    <button class="filter-tab" onclick="filterStocks('景気敏感', this)">景気敏感</button>
+</div>
+
+<div id="errorBanner"></div>
+<div class="stock-list" id="stockList">
+    <div class="loading"><div class="spinner"></div>データを取得中...</div>
+</div>
+
+<script>
+// ─── 銘柄マスタ（annualDividend = 年間配当/株・円） ──────────────
+const STOCKS = [
+    { code: '9029', name: 'ヒガシHD',          targetYield: 3.9, annualDividend:  50, industry: '陸運業',     type: 'ディフェンシブ' },
+    { code: '9057', name: '遠州トラック',       targetYield: 4.0, annualDividend:  96, industry: '陸運業',     type: 'ディフェンシブ' },
+    { code: '9069', name: 'センコーグループHD', targetYield: 3.8, annualDividend:  50, industry: '陸運業',     type: 'ディフェンシブ' },
+    { code: '9072', name: 'ニッコンHD',         targetYield: 5.4, annualDividend:  74, industry: '陸運業',     type: 'ディフェンシブ' },
+    { code: '7267', name: 'ホンダ',             targetYield: 4.8, annualDividend:  70, industry: '輸送用機器', type: '景気敏感' },
+    { code: '7272', name: 'ヤマハ発',           targetYield: 4.3, annualDividend:  50, industry: '輸送用機器', type: '景気敏感' },
+    { code: '8630', name: 'SOMPOHD',           targetYield: 4.9, annualDividend: 150, industry: '保険業',     type: 'ディフェンシブ' },
+    { code: '8725', name: 'MS&AD',             targetYield: 5.2, annualDividend: 155, industry: '保険業',     type: 'ディフェンシブ' },
+    { code: '8766', name: '東京海上',           targetYield: 4.8, annualDividend: 211, industry: '保険業',     type: 'ディフェンシブ' },
+];
+
+// フォールバック用静的データ
+const STATIC_DATA = {
+    '9029': { price: 1892,  yield: 2.64, change: 0 },
+    '9057': { price: 3490,  yield: 2.75, change: 0 },
+    '9069': { price: 1867,  yield: 2.68, change: 0 },
+    '9072': { price: 4805,  yield: 1.54, change: 0 },
+    '7267': { price: 1269,  yield: 5.52, change: 0 },
+    '7272': { price: 1184,  yield: 4.22, change: 0 },
+    '8630': { price: 6017,  yield: 2.49, change: 0 },
+    '8725': { price: 4136,  yield: 3.75, change: 0 },
+    '8766': { price: 7243,  yield: 2.91, change: 0 },
+};
+
+// STOCKS を code でルックアップ
+const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.code, s]));
+
+let stockData    = {};
+let dataSource   = 'static'; // 'yahoo' | 'stooq' | 'static'
+let currentFilter = 'all';
+
+// ─── データ取得 ───────────────────────────────────────────
+
+function fetchWithTimeout(url, ms = 10000) {
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
+// Yahoo Finance レスポンスを解析して stockData を更新
+function applyYahooResult(results) {
+    results.forEach(q => {
+        const code  = q.symbol.replace(/\.T$/i, '');
+        const price = q.regularMarketPrice ?? null;
+        // 利回り: Yahoo提供 → そのまま利用 / なければ年間配当から計算
+        let yieldVal = q.trailingAnnualDividendYield != null
+            ? q.trailingAnnualDividendYield * 100
+            : null;
+        if (yieldVal == null && price != null) {
+            const annDiv = STOCK_MAP[code]?.annualDividend;
+            if (annDiv) yieldVal = (annDiv / price) * 100;
+        }
+        stockData[code] = {
+            price,
+            yield:  yieldVal,
+            change: q.regularMarketChangePercent ?? 0,
+        };
+    });
+}
+
+async function fetchAllStocks() {
+    const btn  = document.getElementById('refreshBtn');
+    const icon = document.getElementById('refreshIcon');
+    btn.disabled = true;
+    icon.classList.add('spinning');
+    document.getElementById('stockList').innerHTML    = '<div class="loading"><div class="spinner"></div>データを取得中...</div>';
+    document.getElementById('lastUpdated').textContent = '更新中...';
+    document.getElementById('errorBanner').innerHTML  = '';
+
+    const symbolStr = STOCKS.map(s => s.code + '.T').join(',');
+
+    // ── 1. Netlify Function（Yahoo Finance crumb → Stooq の2段フォールバック）
+    try {
+        const res = await fetchWithTimeout(
+            `/api/yahoo-proxy?symbols=${encodeURIComponent(symbolStr)}`, 12000
+        );
+        if (res.ok) {
+            const data = await res.json();
+            if (data?.quoteResponse?.result?.length) {
+                applyYahooResult(data.quoteResponse.result);
+                dataSource = data.source ?? 'yahoo';
+                const src  = dataSource === 'stooq' ? 'Stooq（価格）+ 配当固定値' : 'Yahoo Finance';
+                const now  = new Date();
+                document.getElementById('lastUpdated').textContent =
+                    `最終更新: ${now.toLocaleString('ja-JP', { hour12: false })}  [${src}]`;
+                icon.classList.remove('spinning');
+                btn.disabled = false;
+                renderStocks();
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('Netlify function failed:', e.message);
+    }
+
+    // ── 2. 静的フォールバック
+    stockData  = JSON.parse(JSON.stringify(STATIC_DATA));
+    dataSource = 'static';
+    document.getElementById('lastUpdated').textContent = '参考値を表示中（Netlifyデプロイでリアルタイム取得）';
+    document.getElementById('errorBanner').innerHTML   =
+        `<div class="error-banner">⚠️ ローカル環境ではデータ取得不可。<br>Netlifyへデプロイするとリアルタイム取得が有効になります。</div>`;
+
+    icon.classList.remove('spinning');
+    btn.disabled = false;
+    renderStocks();
+}
+
+// ─── フィルタリング ───────────────────────────────────────
+function filterStocks(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderStocks();
+}
+
+// ─── 描画 ─────────────────────────────────────────────────
+function renderStocks() {
+    // 達成カウント
+    let achievedCount = 0;
+    STOCKS.forEach(s => {
+        const d = stockData[s.code];
+        if (d?.yield != null && d.yield >= s.targetYield) achievedCount++;
+    });
+    document.getElementById('achievedCount').textContent = achievedCount;
+    document.getElementById('achievedRate').textContent  =
+        Math.round(achievedCount / STOCKS.length * 100) + '%';
+
+    // フィルタ
+    let filtered = STOCKS;
+    if (currentFilter === 'achieved') {
+        filtered = STOCKS.filter(s => {
+            const d = stockData[s.code];
+            return d?.yield != null && d.yield >= s.targetYield;
+        });
+    } else if (currentFilter !== 'all') {
+        filtered = STOCKS.filter(s => s.industry === currentFilter || s.type === currentFilter);
+    }
+
+    if (filtered.length === 0) {
+        document.getElementById('stockList').innerHTML = '<div class="no-results">該当銘柄はありません</div>';
+        return;
+    }
+
+    // データソースバッジ
+    const srcLabel = { yahoo: 'YF', stooq: 'Stooq', static: '参考値' };
+    const srcClass = { yahoo: 'source-yahoo', stooq: 'source-stooq', static: 'source-static' };
+    const srcBadge = `<span class="source-badge ${srcClass[dataSource] ?? 'source-static'}">${srcLabel[dataSource] ?? '参考値'}</span>`;
+
+    const html = filtered.map(stock => {
+        const d         = stockData[stock.code] || {};
+        const price     = d.price != null ? Math.round(d.price).toLocaleString('ja-JP') : '---';
+        const yieldVal  = d.yield  != null ? d.yield  : null;
+        const yieldStr  = yieldVal != null ? yieldVal.toFixed(2) + '%' : '---';
+        const changeVal = d.change ?? 0;
+        const isAchieved = yieldVal != null && yieldVal >= stock.targetYield;
+        const barPct    = yieldVal != null ? Math.min(Math.round(yieldVal / stock.targetYield * 100), 100) : 0;
+        const typeClass = stock.type === 'ディフェンシブ' ? 'tag-defensive' : 'tag-cyclical';
+
+        // 騰落率バッジ
+        let changeClass = 'flat', changeSign = '';
+        if (changeVal > 0) { changeClass = 'up';   changeSign = '+'; }
+        if (changeVal < 0) { changeClass = 'down'; }
+        const changeBadge = d.change != null
+            ? `<span class="change-pct ${changeClass}">${changeSign}${changeVal.toFixed(2)}%</span>`
+            : '';
+
+        return `
+        <div class="stock-card ${isAchieved ? 'achieved' : ''}">
+            <div class="stock-header">
+                <div>
+                    <div class="stock-name">${stock.name}</div>
+                    <div class="stock-code">${stock.code} · ${stock.industry} ${changeBadge}</div>
+                </div>
+                <div class="achieved-badge">達成</div>
+            </div>
+            <div class="stock-metrics">
+                <div class="metric">
+                    <div class="metric-label">現在値</div>
+                    <div class="metric-value">¥${price}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">現在利回り ${srcBadge}</div>
+                    <div class="metric-value yield-current">${yieldStr}</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">期待利回り</div>
+                    <div class="metric-value yield-target">${stock.targetYield.toFixed(1)}%</div>
+                </div>
+            </div>
+            <div class="yield-bar-wrap">
+                <div class="yield-bar" style="width:${barPct}%"></div>
+            </div>
+            <div class="tags">
+                <span class="tag tag-industry">${stock.industry}</span>
+                <span class="tag ${typeClass}">${stock.type}</span>
+            </div>
+            <div class="ext-links">
+                <a class="ext-link irbank"
+                   href="https://irbank.net/${stock.code}/results"
+                   target="_blank" rel="noopener noreferrer">
+                   📊 IRバンク
+                </a>
+                <a class="ext-link buffett"
+                   href="https://www.buffett-code.com/company/${stock.code}"
+                   target="_blank" rel="noopener noreferrer">
+                   🏦 バフェット
+                </a>
+                <a class="ext-link kabutan"
+                   href="https://kabutan.jp/stock/?code=${stock.code}"
+                   target="_blank" rel="noopener noreferrer">
+                   📈 株探
+                </a>
+            </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('stockList').innerHTML = html;
+}
+
+// ─── 起動 ─────────────────────────────────────────────────
+fetchAllStocks();
+setInterval(fetchAllStocks, 5 * 60 * 1000); // 5分おとに自動更新
+</script>
+</body>
+</html>
