@@ -25,10 +25,19 @@
         .stat-label { font-size: 10px; color: #888; margin-bottom: 4px; }
         .stat-value { font-size: 22px; font-weight: 800; color: #1a1a2e; }
         .stat-value.green { color: #00b84c; }
-        .filter-tabs { display: flex; background: white; border-bottom: 2px solid #eee; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .filter-tabs::-webkit-scrollbar { display: none; }
-        .filter-tab { padding: 10px 14px; font-size: 12px; border: none; background: none; cursor: pointer; white-space: nowrap; color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; -webkit-tap-highlight-color: transparent; }
+        /* ── 階層フィルタ ── */
+        .filter-section { background: white; border-bottom: 2px solid #eee; }
+        .filter-row { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-bottom: 1px solid #f0f0f0; }
+        .filter-row:last-child { border-bottom: none; }
+        .filter-row::-webkit-scrollbar { display: none; }
+        .filter-row-top { font-weight: 700; }
+        .filter-row-type { background: #fafafa; }
+        .filter-row-ind  { background: #f4f6fb; }
+        .filter-tab { padding: 9px 14px; font-size: 12px; border: none; background: none; cursor: pointer; white-space: nowrap; color: #999; border-bottom: 2px solid transparent; margin-bottom: -1px; font-weight: 500; -webkit-tap-highlight-color: transparent; }
         .filter-tab.active { color: #e94560; border-bottom: 2px solid #e94560; font-weight: 700; }
+        .filter-tab.type-active { color: #1a1a2e; border-bottom: 2px solid #1a1a2e; font-weight: 700; }
+        .filter-row-ind .filter-tab { font-size: 11px; padding: 7px 12px; color: #777; }
+        .filter-row-ind .filter-tab.active { color: #e94560; }
         .stock-list { padding: 12px; }
         .stock-card { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid transparent; transition: border-color 0.3s; }
         .stock-card.achieved { border-left-color: #00b84c; background: linear-gradient(to right, #f0fff5, white 30%); }
@@ -108,26 +117,19 @@
     </div>
 </div>
 
-<div class="filter-tabs">
-    <button class="filter-tab active" onclick="filterStocks('all', this)">すべて</button>
-    <button class="filter-tab" onclick="filterStocks('achieved', this)">✅ 達成</button>
-    <button class="filter-tab" onclick="filterStocks('ディフェンシブ', this)">ディフェンシブ</button>
-    <button class="filter-tab" onclick="filterStocks('景気敏感', this)">景気敏感</button>
-    <button class="filter-tab" onclick="filterStocks('サービス業', this)">サービス業</button>
-    <button class="filter-tab" onclick="filterStocks('情報・通信業', this)">情報・通信業</button>
-    <button class="filter-tab" onclick="filterStocks('卸売業', this)">卸売業</button>
-    <button class="filter-tab" onclick="filterStocks('建設業', this)">建設業</button>
-    <button class="filter-tab" onclick="filterStocks('化学', this)">化学</button>
-    <button class="filter-tab" onclick="filterStocks('不動産業', this)">不動産業</button>
-    <button class="filter-tab" onclick="filterStocks('電気機器', this)">電気機器</button>
-    <button class="filter-tab" onclick="filterStocks('食料品', this)">食料品</button>
-    <button class="filter-tab" onclick="filterStocks('保険業', this)">保険業</button>
-    <button class="filter-tab" onclick="filterStocks('銀行業', this)">銀行業</button>
-    <button class="filter-tab" onclick="filterStocks('医薬品', this)">医薬品</button>
-    <button class="filter-tab" onclick="filterStocks('陸運業', this)">陸運業</button>
-    <button class="filter-tab" onclick="filterStocks('機械', this)">機械</button>
-    <button class="filter-tab" onclick="filterStocks('その他金融業', this)">その他金融業</button>
-    <button class="filter-tab" onclick="filterStocks('その他製品', this)">その他製品</button>
+<div class="filter-section">
+    <!-- 第1段：すべて / 達成 -->
+    <div class="filter-row filter-row-top">
+        <button class="filter-tab active" id="tabAll"      onclick="setTopFilter('all', this)">すべて</button>
+        <button class="filter-tab"        id="tabAchieved" onclick="setTopFilter('achieved', this)">✅ 達成</button>
+    </div>
+    <!-- 第2段：ディフェンシブ / 景気敏感 -->
+    <div class="filter-row filter-row-type">
+        <button class="filter-tab" id="tabDefensive" onclick="setTypeFilter('ディフェンシブ', this)">🛡 ディフェンシブ</button>
+        <button class="filter-tab" id="tabCyclical"  onclick="setTypeFilter('景気敏感', this)">📈 景気敏感</button>
+    </div>
+    <!-- 第3段：業種（選択タイプに応じて動的生成） -->
+    <div class="filter-row filter-row-ind" id="filterRowInd" style="display:none"></div>
 </div>
 
 <div id="errorBanner"></div>
@@ -414,6 +416,7 @@ let stockData      = {};
 let dataSource     = 'static';
 let dataUpdatedAt  = null;   // data.json の updated 文字列
 let currentFilter  = 'all';
+let currentType    = null;   // 'ディフェンシブ' | '景気敏感' | null
 
 function fetchWithTimeout(url, ms = 10000) {
     const ctrl  = new AbortController();
@@ -492,9 +495,44 @@ async function fetchAllStocks() {
     renderStocks();
 }
 
-function filterStocks(filter, btn) {
+// 第1段：すべて / 達成
+function setTopFilter(filter, btn) {
     currentFilter = filter;
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    currentType   = null;
+    // 第1段アクティブ、第2段・第3段クリア
+    document.querySelectorAll('.filter-row-top .filter-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('active', 'type-active'));
+    btn.classList.add('active');
+    // 第3段を非表示
+    const row3 = document.getElementById('filterRowInd');
+    row3.style.display = 'none';
+    renderStocks();
+}
+
+// 第2段：ディフェンシブ / 景気敏感
+function setTypeFilter(type, btn) {
+    currentFilter = type;
+    currentType   = type;
+    // 第1段クリア、第2段アクティブ
+    document.querySelectorAll('.filter-row-top .filter-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('active', 'type-active'));
+    btn.classList.add('type-active');
+    // 第3段：このタイプの業種を動的生成
+    const industries = [...new Set(
+        STOCKS.filter(s => s.type === type).map(s => s.industry)
+    )].sort((a, b) => a.localeCompare(b, 'ja'));
+    const row3 = document.getElementById('filterRowInd');
+    row3.innerHTML = industries.map(ind =>
+        `<button class="filter-tab" onclick="setIndustryFilter('${ind}', this)">${ind}</button>`
+    ).join('');
+    row3.style.display = 'flex';
+    renderStocks();
+}
+
+// 第3段：業種
+function setIndustryFilter(industry, btn) {
+    currentFilter = industry;
+    document.querySelectorAll('#filterRowInd .filter-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     renderStocks();
 }
