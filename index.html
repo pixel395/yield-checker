@@ -30,20 +30,27 @@
         .filter-tab { padding: 10px 14px; font-size: 12px; border: none; background: none; cursor: pointer; white-space: nowrap; color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; -webkit-tap-highlight-color: transparent; }
         .filter-tab.active { color: #e94560; border-bottom: 2px solid #e94560; font-weight: 700; }
         .stock-list { padding: 12px; }
-        .stock-card { background: white; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid transparent; transition: border-color 0.3s; }
+        .stock-card { background: white; border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid transparent; transition: border-color 0.3s; }
         .stock-card.achieved { border-left-color: #00b84c; background: linear-gradient(to right, #f0fff5, white 30%); }
-        .stock-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-        .stock-name { font-size: 15px; font-weight: 700; }
-        .stock-code { font-size: 11px; color: #aaa; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
-        .change-pct { font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 6px; }
-        .change-pct.up   { color: #d32f2f; background: #ffebee; }
-        .change-pct.down { color: #1565c0; background: #e3f2fd; }
-        .change-pct.flat { color: #666;    background: #f5f5f5; }
-        .achieved-badge { background: #00b84c; color: white; padding: 5px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; display: none; letter-spacing: 1px; animation: pop 0.3s ease; }
+        /* Row 1: code · name · 学長 badge · spacer · update time · 達成 */
+        .card-row1 { display: flex; align-items: center; gap: 5px; margin-bottom: 7px; flex-wrap: nowrap; overflow: hidden; }
+        .stock-code { font-size: 11px; font-weight: 700; color: #fff; background: #1a1a2e; padding: 2px 7px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+        .stock-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+        .gakucho-badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 8px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; white-space: nowrap; flex-shrink: 0; }
+        .row1-spacer { flex: 1; min-width: 4px; }
+        .update-badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+        .update-badge.live   { background: #fff8e1; color: #f57f17; }
+        .update-badge.static { background: #f5f5f5; color: #999; }
+        .achieved-badge { background: #00b84c; color: white; padding: 3px 9px; border-radius: 10px; font-size: 11px; font-weight: 800; display: none; letter-spacing: 1px; animation: pop 0.3s ease; flex-shrink: 0; white-space: nowrap; }
         .stock-card.achieved .achieved-badge { display: inline-block; }
-        .gakucho-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; margin-left: 5px; vertical-align: middle; }
-        .update-time { display: block; font-size: 9px; color: #f57f17; font-weight: 600; margin-top: 2px; }
         @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        /* Row 2: tags */
+        .card-row2 { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+        .tag { display: inline-block; padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .tag-industry  { background: #e8f0fe; color: #1a5dab; }
+        .tag-defensive { background: #e6f7ee; color: #1c7c40; }
+        .tag-cyclical  { background: #fff3e0; color: #b56300; }
+        /* Row 3: metrics */
         .stock-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .metric { text-align: center; background: #f7f8fa; border-radius: 10px; padding: 8px 4px; }
         .metric-label { font-size: 10px; color: #999; margin-bottom: 3px; }
@@ -54,11 +61,10 @@
         .yield-bar-wrap { background: #f0f2f5; border-radius: 8px; height: 6px; overflow: hidden; margin-bottom: 8px; }
         .yield-bar { height: 100%; border-radius: 8px; background: #e94560; transition: width 0.6s ease; }
         .stock-card.achieved .yield-bar { background: #00b84c; }
-        .tags { display: flex; gap: 5px; flex-wrap: wrap; }
-        .tag { display: inline-block; padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-        .tag-industry  { background: #e8f0fe; color: #1a5dab; }
-        .tag-defensive { background: #e6f7ee; color: #1c7c40; }
-        .tag-cyclical  { background: #fff3e0; color: #b56300; }
+        .change-pct { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 6px; }
+        .change-pct.up   { color: #d32f2f; background: #ffebee; }
+        .change-pct.down { color: #1565c0; background: #e3f2fd; }
+        .change-pct.flat { display: none; }
         .ext-links { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
         .ext-link { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 600; text-decoration: none; border: 1px solid; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
         .ext-link:active { opacity: 0.6; }
@@ -70,10 +76,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .error-banner { background: #fff3f3; border: 1px solid #ffcdd2; border-radius: 10px; padding: 12px; margin: 12px; font-size: 12px; color: #c62828; text-align: center; }
         .no-results { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
-        .source-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; vertical-align: middle; margin-left: 4px; }
-        .source-yahoo  { background: #e3f2fd; color: #1565c0; }
-        .source-stooq  { background: #fff8e1; color: #f57f17; }
-        .source-static { background: #f5f5f5; color: #999; }
+        .source-badge { display: none; }
     </style>
 </head>
 <body>
@@ -523,13 +526,6 @@ function renderStocks() {
         return;
     }
 
-    // 静的データは「参考値」バッジ、更新済みは更新日時を表示
-    const srcBadge = dataSource === 'static'
-        ? `<span class="source-badge source-static">参考値</span>`
-        : dataUpdatedAt
-            ? `<span class="source-badge source-stooq">${dataUpdatedAt} 更新</span>`
-            : '';
-
     const html = filtered.map(stock => {
         const d          = stockData[stock.code] || {};
         const price      = d.price != null ? Math.round(d.price).toLocaleString('ja-JP') : '---';
@@ -549,22 +545,32 @@ function renderStocks() {
 
         const targetStr = stock.targetYield >= 90 ? '未設定' : stock.targetYield.toFixed(1) + '%';
 
+        const updBadge = dataSource !== 'static' && dataUpdatedAt
+            ? `<span class="update-badge live">${dataUpdatedAt}</span>`
+            : `<span class="update-badge static">参考値</span>`;
+
         return `
         <div class="stock-card ${isAchieved ? 'achieved' : ''}">
-            <div class="stock-header">
-                <div>
-                    <div class="stock-name">${stock.name}${GAKUCHO_CODES.has(stock.code) ? '<span class="gakucho-badge">学長</span>' : ''}</div>
-                    <div class="stock-code">${stock.code} · ${stock.industry} ${changeBadge}</div>
-                </div>
-                <div class="achieved-badge">達成</div>
+            <div class="card-row1">
+                <span class="stock-code">${stock.code}</span>
+                <span class="stock-name">${stock.name}</span>
+                ${GAKUCHO_CODES.has(stock.code) ? '<span class="gakucho-badge">学長</span>' : ''}
+                <span class="row1-spacer"></span>
+                ${updBadge}
+                <span class="achieved-badge">達成</span>
+            </div>
+            <div class="card-row2">
+                <span class="tag tag-industry">${stock.industry}</span>
+                <span class="tag ${typeClass}">${stock.type}</span>
+                ${changeBadge}
             </div>
             <div class="stock-metrics">
                 <div class="metric">
-                    <div class="metric-label">現在値${dataUpdatedAt ? `<span class="update-time">${dataUpdatedAt}</span>` : ''}</div>
+                    <div class="metric-label">現在値</div>
                     <div class="metric-value">¥${price}</div>
                 </div>
                 <div class="metric">
-                    <div class="metric-label">現在利回り ${srcBadge}</div>
+                    <div class="metric-label">現在利回り</div>
                     <div class="metric-value yield-current">${yieldStr}</div>
                 </div>
                 <div class="metric">
@@ -574,10 +580,6 @@ function renderStocks() {
             </div>
             <div class="yield-bar-wrap">
                 <div class="yield-bar" style="width:${barPct}%"></div>
-            </div>
-            <div class="tags">
-                <span class="tag tag-industry">${stock.industry}</span>
-                <span class="tag ${typeClass}">${stock.type}</span>
             </div>
             <div class="ext-links">
                 <a class="ext-link irbank"  href="https://irbank.net/${stock.code}/results" target="_blank" rel="noopener noreferrer">📊 IRバンク</a>
