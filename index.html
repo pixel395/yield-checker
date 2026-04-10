@@ -41,6 +41,7 @@
         .change-pct.flat { color: #666;    background: #f5f5f5; }
         .achieved-badge { background: #00b84c; color: white; padding: 5px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; display: none; letter-spacing: 1px; animation: pop 0.3s ease; }
         .stock-card.achieved .achieved-badge { display: inline-block; }
+        .gakucho-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; margin-left: 5px; vertical-align: middle; }
         @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .stock-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .metric { text-align: center; background: #f7f8fa; border-radius: 10px; padding: 8px 4px; }
@@ -392,6 +393,19 @@ const STATIC_DATA = {
 };
 
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.code, s]));
+
+// 学長推奨銘柄
+const GAKUCHO_CODES = new Set([
+    '9069','7267','8630','8766','3003','6652','6718','9513','5464','9303',
+    '9368','2003','2914','3834','4674','4743','4768','4832','9432','9433',
+    '9698','1414','1928','1951','9233','8306','8316','7989','6345','6381',
+    '4008','4041','4042','4220','7931','7995','3076','7483','8001','8031',
+    '8058','8130','9882','9986','4502','4540','7820','7921','8424','8439',
+    '8584','8593','2124','2169','2391','2393','2475','6539','9639','9757',
+    '9769','9795','5334','1723','1976','1980','2317','3771','3817','4641',
+    '4752','5011','5186','5388','6322','6454','6745','7292','7438','7749',
+    '9960','9687','4719','9364','4097','3901',
+]);
 let stockData    = {};
 let dataSource   = 'static';
 let currentFilter = 'all';
@@ -497,9 +511,10 @@ function renderStocks() {
         return;
     }
 
-    const srcLabel = { yahoo: 'YF', stooq: 'Stooq', static: '参考値' };
-    const srcClass = { yahoo: 'source-yahoo', stooq: 'source-stooq', static: 'source-static' };
-    const srcBadge = `<span class="source-badge ${srcClass[dataSource] ?? 'source-static'}">${srcLabel[dataSource] ?? '参考値'}</span>`;
+    // 参考値のみバッジ表示（stooq/yahooは非表示）
+    const srcBadge = dataSource === 'static'
+        ? `<span class="source-badge source-static">参考値</span>`
+        : '';
 
     const html = filtered.map(stock => {
         const d          = stockData[stock.code] || {};
@@ -524,7 +539,7 @@ function renderStocks() {
         <div class="stock-card ${isAchieved ? 'achieved' : ''}">
             <div class="stock-header">
                 <div>
-                    <div class="stock-name">${stock.name}</div>
+                    <div class="stock-name">${stock.name}${GAKUCHO_CODES.has(stock.code) ? '<span class="gakucho-badge">学長</span>' : ''}</div>
                     <div class="stock-code">${stock.code} · ${stock.industry} ${changeBadge}</div>
                 </div>
                 <div class="achieved-badge">達成</div>
