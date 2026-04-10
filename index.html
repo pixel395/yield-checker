@@ -406,9 +406,10 @@ const GAKUCHO_CODES = new Set([
     '4752','5011','5186','5388','6322','6454','6745','7292','7438','7749',
     '9960','9687','4719','9364','4097','3901',
 ]);
-let stockData    = {};
-let dataSource   = 'static';
-let currentFilter = 'all';
+let stockData      = {};
+let dataSource     = 'static';
+let dataUpdatedAt  = null;   // data.json の updated 文字列
+let currentFilter  = 'all';
 
 function fetchWithTimeout(url, ms = 10000) {
     const ctrl  = new AbortController();
@@ -445,11 +446,11 @@ async function fetchAllStocks() {
             if (data?.stocks && Object.keys(data.stocks).length > 0) {
                 applyDataJson(data.stocks);
                 dataSource = data.source ?? 'stooq';
-                const updatedAt = data.updated
-                    ? new Date(data.updated).toLocaleString('ja-JP', { hour12: false }) + ' (UTC)'
-                    : new Date().toLocaleString('ja-JP', { hour12: false });
+                dataUpdatedAt = data.updated
+                    ? new Date(data.updated).toLocaleString('ja-JP', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                    : new Date().toLocaleString('ja-JP', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
                 document.getElementById('lastUpdated').textContent =
-                    `最終更新: ${updatedAt}  [Stooq + 配当固定値]`;
+                    `最終更新: ${dataUpdatedAt}  [Stooq + 配当固定値]`;
                 icon.classList.remove('spinning');
                 btn.disabled = false;
                 renderStocks();
@@ -468,7 +469,8 @@ async function fetchAllStocks() {
             ? (s.annualDividend / p) * 100 : null;
         stockData[s.code] = { price: p, yield: yieldVal, change: 0 };
     });
-    dataSource = 'static';
+    dataSource    = 'static';
+    dataUpdatedAt = null;
     document.getElementById('lastUpdated').textContent = '参考値を表示中（GitHub Actions が未実行）';
     document.getElementById('errorBanner').innerHTML   =
         `<div class="error-banner">⚠️ data.json が見つかりません。<br>GitHub Actions が実行されると自動更新されます。</div>`;
@@ -511,10 +513,12 @@ function renderStocks() {
         return;
     }
 
-    // 参考値のみバッジ表示（stooq/yahooは非表示）
+    // 静的データは「参考値」バッジ、更新済みは更新日時を表示
     const srcBadge = dataSource === 'static'
         ? `<span class="source-badge source-static">参考値</span>`
-        : '';
+        : dataUpdatedAt
+            ? `<span class="source-badge source-stooq">${dataUpdatedAt} 更新</span>`
+            : '';
 
     const html = filtered.map(stock => {
         const d          = stockData[stock.code] || {};
