@@ -446,6 +446,15 @@ async function fetchAllStocks() {
             const data = await res.json();
             if (data?.stocks && Object.keys(data.stocks).length > 0) {
                 applyDataJson(data.stocks);
+                // data.json に含まれない銘柄は STATIC_DATA で補完
+                STOCKS.forEach(s => {
+                    if (!stockData[s.code]) {
+                        const p = STATIC_DATA[s.code]?.price ?? null;
+                        const yv = (p != null && p > 0 && s.annualDividend > 0)
+                            ? (s.annualDividend / p) * 100 : null;
+                        stockData[s.code] = { price: p, yield: yv, change: 0 };
+                    }
+                });
                 dataSource = data.source ?? 'stooq';
                 dataUpdatedAt = data.updated
                     ? new Date(data.updated).toLocaleString('ja-JP', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
