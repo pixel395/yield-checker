@@ -11,275 +11,64 @@
     <title>利回りチェッカー</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
-            background: #f0f2f5;
-            color: #1a1a2e;
-            min-height: 100vh;
-        }
-
-        header {
-            background: #1a1a2e;
-            color: white;
-            padding: 14px 16px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+        header { background: #1a1a2e; color: white; padding: 14px 16px; position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
         .header-title { font-size: 17px; font-weight: 700; letter-spacing: 0.5px; }
         .header-subtitle { font-size: 11px; color: #aab; margin-top: 2px; }
-
-        .refresh-btn {
-            background: #e94560;
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: opacity 0.2s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .refresh-btn { background: #e94560; color: white; border: none; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
         .refresh-btn:active { opacity: 0.7; }
         .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
         .spinning { animation: spin 0.8s linear infinite; display: inline-block; }
-
-        .last-updated {
-            text-align: center;
-            padding: 7px 16px;
-            font-size: 11px;
-            color: #888;
-            background: white;
-            border-bottom: 1px solid #eee;
-        }
-
-        .stats-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1px;
-            background: #e8e8e8;
-            border-bottom: 1px solid #ddd;
-        }
-        .stat-box {
-            background: white;
-            text-align: center;
-            padding: 12px 8px;
-        }
+        .last-updated { text-align: center; padding: 7px 16px; font-size: 11px; color: #888; background: white; border-bottom: 1px solid #eee; }
+        .stats-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px; background: #e8e8e8; border-bottom: 1px solid #ddd; }
+        .stat-box { background: white; text-align: center; padding: 12px 8px; }
         .stat-label { font-size: 10px; color: #888; margin-bottom: 4px; }
         .stat-value { font-size: 22px; font-weight: 800; color: #1a1a2e; }
         .stat-value.green { color: #00b84c; }
-
-        .filter-tabs {
-            display: flex;
-            background: white;
-            border-bottom: 2px solid #eee;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-        }
+        .filter-tabs { display: flex; background: white; border-bottom: 2px solid #eee; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .filter-tabs::-webkit-scrollbar { display: none; }
-
-        .filter-tab {
-            padding: 10px 14px;
-            font-size: 12px;
-            border: none;
-            background: none;
-            cursor: pointer;
-            white-space: nowrap;
-            color: #999;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            font-weight: 500;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .filter-tab.active {
-            color: #e94560;
-            border-bottom: 2px solid #e94560;
-            font-weight: 700;
-        }
-
+        .filter-tab { padding: 10px 14px; font-size: 12px; border: none; background: none; cursor: pointer; white-space: nowrap; color: #999; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; -webkit-tap-highlight-color: transparent; }
+        .filter-tab.active { color: #e94560; border-bottom: 2px solid #e94560; font-weight: 700; }
         .stock-list { padding: 12px; }
-
-        .stock-card {
-            background: white;
-            border-radius: 14px;
-            padding: 14px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-            border-left: 4px solid transparent;
-            transition: border-color 0.3s;
-        }
-        .stock-card.achieved {
-            border-left-color: #00b84c;
-            background: linear-gradient(to right, #f0fff5, white 30%);
-        }
-
-        .stock-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-        }
+        .stock-card { background: white; border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); border-left: 4px solid transparent; transition: border-color 0.3s; }
+        .stock-card.achieved { border-left-color: #00b84c; background: linear-gradient(to right, #f0fff5, white 30%); }
+        .stock-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
         .stock-name { font-size: 15px; font-weight: 700; }
-        .stock-code {
-            font-size: 11px;
-            color: #aaa;
-            margin-top: 2px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .change-pct {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 1px 5px;
-            border-radius: 6px;
-        }
+        .stock-code { font-size: 11px; color: #aaa; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+        .change-pct { font-size: 11px; font-weight: 600; padding: 1px 5px; border-radius: 6px; }
         .change-pct.up   { color: #d32f2f; background: #ffebee; }
         .change-pct.down { color: #1565c0; background: #e3f2fd; }
         .change-pct.flat { color: #666;    background: #f5f5f5; }
-
-        .achieved-badge {
-            background: #00b84c;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 14px;
-            font-size: 13px;
-            font-weight: 800;
-            display: none;
-            letter-spacing: 1px;
-            animation: pop 0.3s ease;
-        }
+        .achieved-badge { background: #00b84c; color: white; padding: 5px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; display: none; letter-spacing: 1px; animation: pop 0.3s ease; }
         .stock-card.achieved .achieved-badge { display: inline-block; }
-
-        @keyframes pop {
-            0%   { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1);   opacity: 1; }
-        }
-
-        .stock-metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .metric {
-            text-align: center;
-            background: #f7f8fa;
-            border-radius: 10px;
-            padding: 8px 4px;
-        }
+        @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .stock-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .metric { text-align: center; background: #f7f8fa; border-radius: 10px; padding: 8px 4px; }
         .metric-label { font-size: 10px; color: #999; margin-bottom: 3px; }
         .metric-value { font-size: 15px; font-weight: 800; color: #1a1a2e; }
         .yield-current { color: #e94560; }
         .stock-card.achieved .yield-current { color: #00b84c; }
         .yield-target { font-size: 14px; color: #888; }
-
-        .yield-bar-wrap {
-            background: #f0f2f5;
-            border-radius: 8px;
-            height: 6px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-        .yield-bar {
-            height: 100%;
-            border-radius: 8px;
-            background: #e94560;
-            transition: width 0.6s ease;
-        }
+        .yield-bar-wrap { background: #f0f2f5; border-radius: 8px; height: 6px; overflow: hidden; margin-bottom: 8px; }
+        .yield-bar { height: 100%; border-radius: 8px; background: #e94560; transition: width 0.6s ease; }
         .stock-card.achieved .yield-bar { background: #00b84c; }
-
         .tags { display: flex; gap: 5px; flex-wrap: wrap; }
-        .tag {
-            display: inline-block;
-            padding: 3px 9px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 600;
-        }
+        .tag { display: inline-block; padding: 3px 9px; border-radius: 10px; font-size: 10px; font-weight: 600; }
         .tag-industry  { background: #e8f0fe; color: #1a5dab; }
         .tag-defensive { background: #e6f7ee; color: #1c7c40; }
         .tag-cyclical  { background: #fff3e0; color: #b56300; }
-
-        .ext-links {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            margin-top: 10px;
-        }
-        .ext-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            padding: 7px 4px;
-            border-radius: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            text-decoration: none;
-            border: 1px solid;
-            transition: opacity 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .ext-links { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 10px; }
+        .ext-link { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 7px 4px; border-radius: 8px; font-size: 11px; font-weight: 600; text-decoration: none; border: 1px solid; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
         .ext-link:active { opacity: 0.6; }
-        .ext-link.irbank    { color: #1565c0; background: #e8f0fe; border-color: #bbdefb; }
-        .ext-link.buffett   { color: #6a1b9a; background: #f3e5f5; border-color: #e1bee7; }
-        .ext-link.kabutan   { color: #b71c1c; background: #ffebee; border-color: #ffcdd2; }
-
-        .loading {
-            text-align: center;
-            padding: 50px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .spinner {
-            width: 32px; height: 32px;
-            border: 3px solid #eee;
-            border-top-color: #e94560;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 12px;
-        }
+        .ext-link.irbank  { color: #1565c0; background: #e8f0fe; border-color: #bbdefb; }
+        .ext-link.buffett { color: #6a1b9a; background: #f3e5f5; border-color: #e1bee7; }
+        .ext-link.kabutan { color: #b71c1c; background: #ffebee; border-color: #ffcdd2; }
+        .loading { text-align: center; padding: 50px 20px; color: #999; font-size: 14px; }
+        .spinner { width: 32px; height: 32px; border: 3px solid #eee; border-top-color: #e94560; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        .error-banner {
-            background: #fff3f3;
-            border: 1px solid #ffcdd2;
-            border-radius: 10px;
-            padding: 12px;
-            margin: 12px;
-            font-size: 12px;
-            color: #c62828;
-            text-align: center;
-        }
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #aaa;
-            font-size: 14px;
-        }
-
-        .source-badge {
-            display: inline-block;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 8px;
-            vertical-align: middle;
-            margin-left: 4px;
-        }
+        .error-banner { background: #fff3f3; border: 1px solid #ffcdd2; border-radius: 10px; padding: 12px; margin: 12px; font-size: 12px; color: #c62828; text-align: center; }
+        .no-results { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+        .source-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 8px; vertical-align: middle; margin-left: 4px; }
         .source-yahoo  { background: #e3f2fd; color: #1565c0; }
         .source-stooq  { background: #fff8e1; color: #f57f17; }
         .source-static { background: #f5f5f5; color: #999; }
@@ -302,7 +91,7 @@
 <div class="stats-bar">
     <div class="stat-box">
         <div class="stat-label">登録銘柄</div>
-        <div class="stat-value" id="totalCount">9</div>
+        <div class="stat-value" id="totalCount">-</div>
     </div>
     <div class="stat-box">
         <div class="stat-label">達成</div>
@@ -317,11 +106,23 @@
 <div class="filter-tabs">
     <button class="filter-tab active" onclick="filterStocks('all', this)">すべて</button>
     <button class="filter-tab" onclick="filterStocks('achieved', this)">✅ 達成</button>
-    <button class="filter-tab" onclick="filterStocks('陸運業', this)">陸運業</button>
-    <button class="filter-tab" onclick="filterStocks('輸送用機器', this)">輸送用機器</button>
-    <button class="filter-tab" onclick="filterStocks('保険業', this)">保険業</button>
     <button class="filter-tab" onclick="filterStocks('ディフェンシブ', this)">ディフェンシブ</button>
     <button class="filter-tab" onclick="filterStocks('景気敏感', this)">景気敏感</button>
+    <button class="filter-tab" onclick="filterStocks('サービス業', this)">サービス業</button>
+    <button class="filter-tab" onclick="filterStocks('情報・通信業', this)">情報・通信業</button>
+    <button class="filter-tab" onclick="filterStocks('卸売業', this)">卸売業</button>
+    <button class="filter-tab" onclick="filterStocks('建設業', this)">建設業</button>
+    <button class="filter-tab" onclick="filterStocks('化学', this)">化学</button>
+    <button class="filter-tab" onclick="filterStocks('不動産業', this)">不動産業</button>
+    <button class="filter-tab" onclick="filterStocks('電気機器', this)">電気機器</button>
+    <button class="filter-tab" onclick="filterStocks('食料品', this)">食料品</button>
+    <button class="filter-tab" onclick="filterStocks('保険業', this)">保険業</button>
+    <button class="filter-tab" onclick="filterStocks('銀行業', this)">銀行業</button>
+    <button class="filter-tab" onclick="filterStocks('医薬品', this)">医薬品</button>
+    <button class="filter-tab" onclick="filterStocks('陸運業', this)">陸運業</button>
+    <button class="filter-tab" onclick="filterStocks('機械', this)">機械</button>
+    <button class="filter-tab" onclick="filterStocks('その他金融業', this)">その他金融業</button>
+    <button class="filter-tab" onclick="filterStocks('その他製品', this)">その他製品</button>
 </div>
 
 <div id="errorBanner"></div>
@@ -330,40 +131,270 @@
 </div>
 
 <script>
-// ─── 銘柄マスタ（annualDividend = 年間配当/株・円） ──────────────
+// ─── 銘柄マスタ（annualDividend = 年間配当/株・円） ─────────────────────
 const STOCKS = [
+    // ── 陸運業
     { code: '9029', name: 'ヒガシHD',          targetYield: 3.9, annualDividend:  50, industry: '陸運業',     type: 'ディフェンシブ' },
     { code: '9057', name: '遠州トラック',       targetYield: 4.0, annualDividend:  96, industry: '陸運業',     type: 'ディフェンシブ' },
     { code: '9069', name: 'センコーグループHD', targetYield: 3.8, annualDividend:  50, industry: '陸運業',     type: 'ディフェンシブ' },
     { code: '9072', name: 'ニッコンHD',         targetYield: 5.4, annualDividend:  74, industry: '陸運業',     type: 'ディフェンシブ' },
+    // ── 輸送用機器
     { code: '7267', name: 'ホンダ',             targetYield: 4.8, annualDividend:  70, industry: '輸送用機器', type: '景気敏感' },
     { code: '7272', name: 'ヤマハ発',           targetYield: 4.3, annualDividend:  50, industry: '輸送用機器', type: '景気敏感' },
+    { code: '7292', name: '村上開明堂',         targetYield: 4.0, annualDividend:   0, industry: '輸送用機器', type: '景気敏感' },
+    // ── 保険業
     { code: '8630', name: 'SOMPOHD',           targetYield: 4.9, annualDividend: 150, industry: '保険業',     type: 'ディフェンシブ' },
     { code: '8725', name: 'MS&AD',             targetYield: 5.2, annualDividend: 155, industry: '保険業',     type: 'ディフェンシブ' },
     { code: '8766', name: '東京海上',           targetYield: 4.8, annualDividend: 211, industry: '保険業',     type: 'ディフェンシブ' },
+    // ── 不動産業
+    { code: '1343', name: 'NFJ-REIT',          targetYield: 4.5, annualDividend:  92, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '3003', name: 'ヒューリック',       targetYield: 4.8, annualDividend:  60, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '3231', name: '野村不HD',           targetYield: 4.3, annualDividend:  36, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '3276', name: 'JPMC',              targetYield: 4.9, annualDividend:  60, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '3465', name: 'ケイアイスター不動産', targetYield: 5.7, annualDividend: 200, industry: '不動産業', type: 'ディフェンシブ' },
+    { code: '3475', name: 'グッドコムアセット', targetYield: 99.0, annualDividend:  46, industry: '不動産業',  type: 'ディフェンシブ' },
+    { code: '8929', name: '青山財産',           targetYield: 5.7, annualDividend:  53, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '8931', name: '和田興産',           targetYield: 5.1, annualDividend:  70, industry: '不動産業',   type: 'ディフェンシブ' },
+    { code: '8999', name: 'グランディ',         targetYield: 98.0, annualDividend:  32, industry: '不動産業',  type: 'ディフェンシブ' },
+    // ── 非鉄金属
+    { code: '5857', name: 'AREHD',             targetYield: 5.0, annualDividend: 120, industry: '非鉄金属',   type: '景気敏感' },
+    // ── 電気機器
+    { code: '6504', name: '富士電機',           targetYield: 3.0, annualDividend: 160, industry: '電気機器',   type: '景気敏感' },
+    { code: '6652', name: 'IDEC',              targetYield: 5.1, annualDividend: 130, industry: '電気機器',   type: '景気敏感' },
+    { code: '6670', name: 'MCJ',               targetYield: 4.5, annualDividend:  44, industry: '電気機器',   type: '景気敏感' },
+    { code: '6718', name: 'アイホン',           targetYield: 4.5, annualDividend: 130, industry: '電気機器',   type: '景気敏感' },
+    { code: '6919', name: 'ケル',               targetYield: 6.0, annualDividend:  80, industry: '電気機器',   type: '景気敏感' },
+    { code: '9880', name: 'イノテック',         targetYield: 5.1, annualDividend:  70, industry: '電気機器',   type: '景気敏感' },
+    { code: '6678', name: 'テクノメディカ',     targetYield: 3.9, annualDividend:   0, industry: '電気機器',   type: '景気敏感' },
+    { code: '6745', name: 'ホーチキ',           targetYield: 3.4, annualDividend:   0, industry: '電気機器',   type: '景気敏感' },
+    { code: '6785', name: '鈴木',               targetYield: 4.8, annualDividend:   0, industry: '電気機器',   type: '景気敏感' },
+    // ── 電気・ガス業
+    { code: '9513', name: 'Jパワー',            targetYield: 4.6, annualDividend: 100, industry: '電気・ガス業', type: 'ディフェンシブ' },
+    { code: '9536', name: '西部ガスHD',         targetYield: 5.8, annualDividend:  70, industry: '電気・ガス業', type: 'ディフェンシブ' },
+    // ── 鉄鋼
+    { code: '5464', name: 'モリ工業',           targetYield: 4.5, annualDividend:  36, industry: '鉄鋼',       type: '景気敏感' },
+    // ── 倉庫・運輸関連業
+    { code: '9303', name: '住友倉',             targetYield: 5.1, annualDividend: 103, industry: '倉庫・運輸関連業', type: '景気敏感' },
+    { code: '9304', name: '渋沢倉',             targetYield: 4.0, annualDividend:  54, industry: '倉庫・運輸関連業', type: '景気敏感' },
+    { code: '9368', name: 'キムラユニティー',   targetYield: 3.9, annualDividend:  34, industry: '倉庫・運輸関連業', type: '景気敏感' },
+    { code: '9381', name: 'エーアイテイー',     targetYield: 5.4, annualDividend: 100, industry: '倉庫・運輸関連業', type: '景気敏感' },
+    { code: '9364', name: '上組',               targetYield: 4.0, annualDividend:   0, industry: '倉庫・運輸関連業', type: '景気敏感' },
+    // ── 繊維製品
+    { code: '3597', name: '自重堂',             targetYield: 6.5, annualDividend: 500, industry: '繊維製品',   type: '景気敏感' },
+    // ── 精密機器
+    { code: '7729', name: '東精密',             targetYield: 4.3, annualDividend: 222, industry: '精密機器',   type: '景気敏感' },
+    { code: '7723', name: '愛知時計電機',       targetYield: 3.7, annualDividend:   0, industry: '精密機器',   type: '景気敏感' },
+    { code: '7749', name: 'メディキット',       targetYield: 4.0, annualDividend:   0, industry: '精密機器',   type: '景気敏感' },
+    // ── 食料品
+    { code: '2003', name: '日東富士',           targetYield: 4.7, annualDividend: 280, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2296', name: '伊藤ハム米久HD',     targetYield: 4.0, annualDividend: 320, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2503', name: 'キリンHD',           targetYield: 3.8, annualDividend:  74, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2602', name: '日清オイリオ',       targetYield: 3.8, annualDividend: 180, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2914', name: 'JT',                targetYield: 6.8, annualDividend: 234, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2924', name: 'イフジ産業',         targetYield: 4.7, annualDividend:  67, industry: '食料品',     type: 'ディフェンシブ' },
+    { code: '2269', name: '明治ホールディングス', targetYield: 3.5, annualDividend:  0, industry: '食料品',   type: 'ディフェンシブ' },
+    // ── 情報・通信業
+    { code: '3834', name: '朝日ネット',         targetYield: 3.9, annualDividend:  25, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4486', name: 'ユナイト&グロウ',    targetYield: 5.1, annualDividend:  28, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4674', name: 'クレスコ',           targetYield: 4.0, annualDividend:  58, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4725', name: 'CACHD',             targetYield: 5.0, annualDividend: 100, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4743', name: 'アイティフォー',     targetYield: 5.5, annualDividend:  80, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4768', name: '大塚商会',           targetYield: 5.5, annualDividend:  85, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4832', name: 'JFE-SI',            targetYield: 3.8, annualDividend:  68, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '545A', name: 'トランヴィア',       targetYield: 0.0, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9432', name: 'NTT',               targetYield: 3.5, annualDividend:   5, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9433', name: 'KDDI',              targetYield: 3.9, annualDividend:  80, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9651', name: '日プロ',             targetYield: 4.5, annualDividend:  66, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9658', name: 'ビジ太田昭和',       targetYield: 4.0, annualDividend: 133, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9698', name: 'クレオ',             targetYield: 4.7, annualDividend:  52, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9709', name: 'NCS&A',             targetYield: 4.9, annualDividend:  55, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '2317', name: 'システナ',           targetYield: 4.0, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '3771', name: 'システムリサーチ',   targetYield: 4.3, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '3817', name: 'SRAホールディングス', targetYield: 4.4, annualDividend:  0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4752', name: '昭和システムエンジニアリング', targetYield: 4.3, annualDividend: 0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '9687', name: 'KSK',               targetYield: 4.6, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '4719', name: 'アルファシステムズ', targetYield: 4.1, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    { code: '3901', name: 'マークラインズ',     targetYield: 3.8, annualDividend:   0, industry: '情報・通信業', type: 'ディフェンシブ' },
+    // ── 証券、商品先物取引業
+    { code: '8473', name: 'SBI',               targetYield: 5.2, annualDividend:  85, industry: '証券、商品先物取引業', type: 'ディフェンシブ' },
+    // ── 小売業
+    { code: '3050', name: 'DCM',               targetYield: 3.5, annualDividend:  46, industry: '小売業',     type: '景気敏感' },
+    { code: '3179', name: 'シュッピン',         targetYield: 4.0, annualDividend:  47, industry: '小売業',     type: '景気敏感' },
+    { code: '7463', name: 'アドヴァングループ', targetYield: 5.0, annualDividend:  40, industry: '小売業',     type: '景気敏感' },
+    // ── 鉱業
+    { code: '1605', name: 'INPEX',             targetYield: 4.4, annualDividend: 100, industry: '鉱業',       type: '景気敏感' },
+    // ── 建設業
+    { code: '1414', name: 'ショーボンド',       targetYield: 3.5, annualDividend:  46, industry: '建設業',     type: '景気敏感' },
+    { code: '1736', name: 'オーテック',         targetYield: 4.4, annualDividend:  58, industry: '建設業',     type: '景気敏感' },
+    { code: '1820', name: '西松建',             targetYield: 5.8, annualDividend: 220, industry: '建設業',     type: '景気敏感' },
+    { code: '1870', name: '矢作建',             targetYield: 5.5, annualDividend:  90, industry: '建設業',     type: '景気敏感' },
+    { code: '1911', name: '住友林',             targetYield: 5.0, annualDividend:  50, industry: '建設業',     type: '景気敏感' },
+    { code: '1925', name: '大和ハウス',         targetYield: 4.7, annualDividend: 175, industry: '建設業',     type: '景気敏感' },
+    { code: '1928', name: '積水ハウス',         targetYield: 4.4, annualDividend: 144, industry: '建設業',     type: '景気敏感' },
+    { code: '1939', name: '四電工',             targetYield: 5.1, annualDividend:  65, industry: '建設業',     type: '景気敏感' },
+    { code: '1951', name: 'エクシオグループ',   targetYield: 4.3, annualDividend:  66, industry: '建設業',     type: '景気敏感' },
+    { code: '1723', name: '日本電技',           targetYield: 3.9, annualDividend:   0, industry: '建設業',     type: '景気敏感' },
+    { code: '1976', name: '明星工業',           targetYield: 3.8, annualDividend:   0, industry: '建設業',     type: '景気敏感' },
+    { code: '1980', name: 'ダイダン',           targetYield: 4.2, annualDividend:   0, industry: '建設業',     type: '景気敏感' },
+    // ── 空運業
+    { code: '9233', name: 'アジア航測',         targetYield: 4.1, annualDividend:  44, industry: '空運業',     type: '景気敏感' },
+    // ── 銀行業
+    { code: '8306', name: '三菱UFJ',            targetYield: 4.7, annualDividend:  74, industry: '銀行業',     type: '景気敏感' },
+    { code: '8309', name: '三井住友トラストG',  targetYield: 4.9, annualDividend: 170, industry: '銀行業',     type: '景気敏感' },
+    { code: '8316', name: '三井住友',           targetYield: 4.6, annualDividend: 157, industry: '銀行業',     type: '景気敏感' },
+    // ── 金属製品
+    { code: '3431', name: '宮地エンジ',         targetYield: 5.1, annualDividend:  98, industry: '金属製品',   type: '景気敏感' },
+    { code: '3433', name: 'トーカロ',           targetYield: 3.9, annualDividend:  70, industry: '金属製品',   type: '景気敏感' },
+    { code: '5988', name: 'パイオラックス',     targetYield: 5.5, annualDividend:  92, industry: '金属製品',   type: '景気敏感' },
+    { code: '7989', name: '立川ブライ',         targetYield: 3.9, annualDividend:  70, industry: '金属製品',   type: '景気敏感' },
+    // ── 機械
+    { code: '6345', name: 'アイチ',             targetYield: 4.3, annualDividend:  60, industry: '機械',       type: '景気敏感' },
+    { code: '6381', name: 'アネスト岩田',       targetYield: 4.0, annualDividend:  83, industry: '機械',       type: '景気敏感' },
+    { code: '6392', name: 'ヤマダコーポ',       targetYield: 4.6, annualDividend: 210, industry: '機械',       type: '景気敏感' },
+    { code: '6432', name: '竹内製作所',         targetYield: 3.9, annualDividend: 210, industry: '機械',       type: '景気敏感' },
+    { code: '6458', name: '新晃工業',           targetYield: 4.0, annualDividend:  50, industry: '機械',       type: '景気敏感' },
+    { code: '6322', name: 'タクミナ',           targetYield: 3.9, annualDividend:   0, industry: '機械',       type: '景気敏感' },
+    { code: '6454', name: 'マックス',           targetYield: 3.6, annualDividend:   0, industry: '機械',       type: '景気敏感' },
+    { code: '6246', name: 'テクノスマート',     targetYield: 5.0, annualDividend:   0, industry: '機械',       type: '景気敏感' },
+    // ── 化学
+    { code: '4008', name: '住友精化',           targetYield: 4.8, annualDividend: 200, industry: '化学',       type: '景気敏感' },
+    { code: '4041', name: '日本曹',             targetYield: 4.8, annualDividend: 140, industry: '化学',       type: '景気敏感' },
+    { code: '4042', name: '東ソー',             targetYield: 4.9, annualDividend: 100, industry: '化学',       type: '景気敏感' },
+    { code: '4063', name: '信越化',             targetYield: 3.0, annualDividend: 106, industry: '化学',       type: '景気敏感' },
+    { code: '4220', name: 'リケンテクノス',     targetYield: 4.0, annualDividend:  47, industry: '化学',       type: '景気敏感' },
+    { code: '4248', name: '竹本容器',           targetYield: 5.0, annualDividend:  36, industry: '化学',       type: '景気敏感' },
+    { code: '4471', name: '三洋化成',           targetYield: 99.0, annualDividend: 170, industry: '化学',      type: '景気敏感' },
+    { code: '4996', name: 'クミアイ化',         targetYield: 99.0, annualDividend:  24, industry: '化学',      type: '景気敏感' },
+    { code: '5208', name: '有沢製',             targetYield: 99.0, annualDividend:  88, industry: '化学',      type: '景気敏感' },
+    { code: '7931', name: '未来工業',           targetYield: 3.4, annualDividend: 130, industry: '化学',       type: '景気敏感' },
+    { code: '7995', name: 'バルカー',           targetYield: 5.3, annualDividend: 150, industry: '化学',       type: '景気敏感' },
+    { code: '4401', name: 'ADEKA',             targetYield: 3.6, annualDividend:   0, industry: '化学',       type: '景気敏感' },
+    { code: '4097', name: '高圧ガス工業',       targetYield: 4.0, annualDividend:   0, industry: '化学',       type: '景気敏感' },
+    // ── 卸売業
+    { code: '2763', name: 'エフティグループ',   targetYield: 99.0, annualDividend:  55, industry: '卸売業',    type: '景気敏感' },
+    { code: '2768', name: '双日',               targetYield: 5.4, annualDividend: 165, industry: '卸売業',     type: '景気敏感' },
+    { code: '3023', name: 'ラサ商事',           targetYield: 6.5, annualDividend:  72, industry: '卸売業',     type: '景気敏感' },
+    { code: '3076', name: 'あいHD',             targetYield: 3.9, annualDividend: 110, industry: '卸売業',     type: '景気敏感' },
+    { code: '3562', name: 'No.1',              targetYield: 3.6, annualDividend:  36, industry: '卸売業',     type: '景気敏感' },
+    { code: '7464', name: 'セフテック',         targetYield: 4.5, annualDividend:  60, industry: '卸売業',     type: '景気敏感' },
+    { code: '7483', name: 'ドウシシャ',         targetYield: 4.1, annualDividend: 100, industry: '卸売業',     type: '景気敏感' },
+    { code: '8001', name: '伊藤忠',             targetYield: 5.0, annualDividend:  42, industry: '卸売業',     type: '景気敏感' },
+    { code: '8031', name: '三井物産',           targetYield: 5.0, annualDividend: 115, industry: '卸売業',     type: '景気敏感' },
+    { code: '8058', name: '三菱商事',           targetYield: 5.0, annualDividend: 110, industry: '卸売業',     type: '景気敏感' },
+    { code: '8130', name: 'サンゲツ',           targetYield: 5.1, annualDividend: 155, industry: '卸売業',     type: '景気敏感' },
+    { code: '9837', name: 'モリト',             targetYield: 5.0, annualDividend:  72, industry: '卸売業',     type: '景気敏感' },
+    { code: '9882', name: 'イエローハット',     targetYield: 3.8, annualDividend:  58, industry: '卸売業',     type: '景気敏感' },
+    { code: '9986', name: '蔵王産業',           targetYield: 4.2, annualDividend: 100, industry: '卸売業',     type: '景気敏感' },
+    { code: '7438', name: 'コンドーテック',     targetYield: 4.0, annualDividend:   0, industry: '卸売業',     type: '景気敏感' },
+    { code: '9960', name: '東テク',             targetYield: 3.7, annualDividend:   0, industry: '卸売業',     type: '景気敏感' },
+    // ── 医薬品
+    { code: '4502', name: '武田薬',             targetYield: 5.0, annualDividend: 200, industry: '医薬品',     type: 'ディフェンシブ' },
+    { code: '4503', name: 'アステラス薬',       targetYield: 5.0, annualDividend:  78, industry: '医薬品',     type: 'ディフェンシブ' },
+    { code: '4536', name: '参天薬',             targetYield: 3.9, annualDividend:  38, industry: '医薬品',     type: 'ディフェンシブ' },
+    { code: '4540', name: 'ツムラ',             targetYield: 4.0, annualDividend: 144, industry: '医薬品',     type: 'ディフェンシブ' },
+    // ── パルプ・紙
+    { code: '3943', name: '大石産業',           targetYield: 3.7, annualDividend:  52, industry: 'パルプ・紙', type: '景気敏感' },
+    // ── その他製品
+    { code: '7811', name: '中本パックス',       targetYield: 4.2, annualDividend:  68, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7820', name: 'ニホンフラッシュ',   targetYield: 4.5, annualDividend:  36, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7921', name: 'TAKARA&CO',         targetYield: 3.5, annualDividend: 120, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7949', name: '小松ウオール',       targetYield: 5.0, annualDividend: 130, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7966', name: 'リンテック',         targetYield: 4.6, annualDividend: 110, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7994', name: 'オカムラ',           targetYield: 4.8, annualDividend: 104, industry: 'その他製品', type: 'ディフェンシブ' },
+    { code: '7839', name: 'SHOEI',             targetYield: 4.0, annualDividend:   0, industry: 'その他製品', type: 'ディフェンシブ' },
+    // ── その他金融業
+    { code: '7164', name: '全国保証',           targetYield: 3.8, annualDividend: 115, industry: 'その他金融業', type: '景気敏感' },
+    { code: '8424', name: '芙蓉リース',         targetYield: 4.9, annualDividend: 158, industry: 'その他金融業', type: '景気敏感' },
+    { code: '8439', name: '東京センチュリー',   targetYield: 5.1, annualDividend:  72, industry: 'その他金融業', type: '景気敏感' },
+    { code: '8584', name: 'ジャックス',         targetYield: 5.0, annualDividend: 200, industry: 'その他金融業', type: '景気敏感' },
+    { code: '8593', name: '三菱HCキャピタル',   targetYield: 4.8, annualDividend:  45, industry: 'その他金融業', type: '景気敏感' },
+    // ── サービス業
+    { code: '2124', name: 'JAC',               targetYield: 4.0, annualDividend:  36, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2136', name: 'ヒップ',             targetYield: 5.0, annualDividend:  70, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2154', name: 'オープンアップG',    targetYield: 4.0, annualDividend:  85, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2163', name: 'アルトナー',         targetYield: 4.4, annualDividend:  84, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2169', name: 'CDS',               targetYield: 4.0, annualDividend:  74, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2379', name: 'ディップ',           targetYield: 3.9, annualDividend:  95, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2391', name: 'プラネット',         targetYield: 4.0, annualDividend:  44, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2393', name: '日本ケア',           targetYield: 4.4, annualDividend:  72, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2475', name: 'WDB',               targetYield: 3.8, annualDividend:  63, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2483', name: '翻訳センター',       targetYield: 4.2, annualDividend:  75, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2498', name: 'オリコンHD',         targetYield: 4.7, annualDividend: 125, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4318', name: 'クイック',           targetYield: 4.5, annualDividend:  35, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4345', name: 'シーティーエス',     targetYield: 3.4, annualDividend:  29, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4659', name: 'エイジス',           targetYield: 3.7, annualDividend:  95, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4848', name: 'フルキャストHD',     targetYield: 4.5, annualDividend:  63, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '6073', name: 'アサンテ',           targetYield: 5.0, annualDividend:  62, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '6196', name: 'ストライクG',        targetYield: 5.0, annualDividend: 180, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '6539', name: 'MS-Japan',          targetYield: 6.0, annualDividend:  56, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '9639', name: '三協フロンテ',       targetYield: 5.0, annualDividend:  85, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '9757', name: '船井総研HD',         targetYield: 5.8, annualDividend:  42, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '9769', name: '学究社',             targetYield: 4.6, annualDividend: 103, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '9795', name: 'ステップ',           targetYield: 4.1, annualDividend:  88, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '2185', name: 'シイエム・シイ',     targetYield: 4.0, annualDividend:   0, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4641', name: 'アルプス技研',       targetYield: 3.9, annualDividend:   0, industry: 'サービス業',  type: 'ディフェンシブ' },
+    { code: '4792', name: '山田コンサルティンググループ', targetYield: 4.6, annualDividend: 0, industry: 'サービス業', type: 'ディフェンシブ' },
+    // ── ゴム製品
+    { code: '5105', name: 'TOYO TIRE',         targetYield: 4.6, annualDividend: 130, industry: 'ゴム製品',    type: '景気敏感' },
+    { code: '5184', name: 'ニチリン',           targetYield: 4.8, annualDividend: 164, industry: 'ゴム製品',    type: '景気敏感' },
+    { code: '5186', name: 'ニッタ',             targetYield: 3.8, annualDividend:   0, industry: 'ゴム製品',    type: '景気敏感' },
+    // ── ガラス・土石製品
+    { code: '5334', name: '日特殊陶',           targetYield: 7.0, annualDividend: 186, industry: 'ガラス・土石製品', type: '景気敏感' },
+    { code: '5357', name: 'ヨータイ',           targetYield: 5.2, annualDividend:  90, industry: 'ガラス・土石製品', type: '景気敏感' },
+    { code: '5393', name: 'ニチアス',           targetYield: 4.8, annualDividend: 152, industry: 'ガラス・土石製品', type: '景気敏感' },
+    { code: '7943', name: 'ニチハ',             targetYield: 4.2, annualDividend: 114, industry: 'ガラス・土石製品', type: '景気敏感' },
+    { code: '5388', name: 'クニミネ工業',       targetYield: 4.0, annualDividend:   0, industry: 'ガラス・土石製品', type: '景気敏感' },
+    // ── 石油・石炭製品
+    { code: '5011', name: 'ニチレキ',           targetYield: 3.8, annualDividend:   0, industry: '石油・石炭製品', type: '景気敏感' },
 ];
 
-// フォールバック用静的データ
+// フォールバック用静的データ（price のみ使用、yield は annualDividend/price で再計算）
 const STATIC_DATA = {
-    '9029': { price: 1892,  yield: 2.64, change: 0 },
-    '9057': { price: 3490,  yield: 2.75, change: 0 },
-    '9069': { price: 1867,  yield: 2.68, change: 0 },
-    '9072': { price: 4805,  yield: 1.54, change: 0 },
-    '7267': { price: 1269,  yield: 5.52, change: 0 },
-    '7272': { price: 1184,  yield: 4.22, change: 0 },
-    '8630': { price: 6017,  yield: 2.49, change: 0 },
-    '8725': { price: 4136,  yield: 3.75, change: 0 },
-    '8766': { price: 7243,  yield: 2.91, change: 0 },
+    '9029': { price: 1892 }, '9057': { price: 3490 }, '9069': { price: 1867 }, '9072': { price: 4805 },
+    '7267': { price: 1269 }, '7272': { price: 1184 },
+    '8630': { price: 6017 }, '8725': { price: 4136 }, '8766': { price: 7243 },
+    '1343': { price: 2069 }, '3003': { price: 1878 }, '3231': { price: 1043 }, '3276': { price: 1322 },
+    '3465': { price: 3455 }, '3475': { price: 1716 }, '8929': { price: 1319 }, '8931': { price: 1669 }, '8999': { price: 564 },
+    '5857': { price: 3590 },
+    '6504': { price: 10790 }, '6652': { price: 3100 }, '6670': { price: 2182 }, '6718': { price: 2804 }, '6919': { price: 1464 }, '9880': { price: 2479 },
+    '9513': { price: 4417 }, '9536': { price: 2567 },
+    '5464': { price: 974 },
+    '9303': { price: 4080 }, '9304': { price: 1343 }, '9368': { price: 901 }, '9381': { price: 2227 },
+    '3597': { price: 10000 }, '7729': { price: 14065 },
+    '2003': { price: 1820 }, '2296': { price: 5850 }, '2503': { price: 2540 }, '2602': { price: 1925 }, '2914': { price: 6105 }, '2924': { price: 1868 },
+    '3834': { price: 649 }, '4486': { price: 665 }, '4674': { price: 1446 }, '4725': { price: 1843 }, '4743': { price: 1692 }, '4768': { price: 3076 }, '4832': { price: 2045 },
+    '545A': { price: 921 }, '9432': { price: 158 }, '9433': { price: 2745 }, '9651': { price: 1847 }, '9658': { price: 947 }, '9698': { price: 1201 }, '9709': { price: 1606 },
+    '8473': { price: 2948 },
+    '3050': { price: 1641 }, '3179': { price: 1102 }, '7463': { price: 944 },
+    '1605': { price: 4675 },
+    '1414': { price: 1445 }, '1736': { price: 2320 }, '1820': { price: 5845 }, '1870': { price: 2147 }, '1911': { price: 1416 },
+    '1925': { price: 5007 }, '1928': { price: 3560 }, '1939': { price: 1923 }, '1951': { price: 2782 },
+    '9233': { price: 1222 },
+    '8306': { price: 2762 }, '8309': { price: 5123 }, '8316': { price: 5373 },
+    '3431': { price: 1736 }, '3433': { price: 2625 }, '5988': { price: 1648 }, '7989': { price: 2535 },
+    '6345': { price: 1333 }, '6381': { price: 1620 }, '6392': { price: 6550 }, '6432': { price: 6510 }, '6458': { price: 1220 },
+    '4008': { price: 1223 }, '4041': { price: 3615 }, '4042': { price: 2339 }, '4063': { price: 6450 }, '4220': { price: 1723 }, '4248': { price: 884 },
+    '4471': { price: 4960 }, '4996': { price: 800 }, '5208': { price: 2330 }, '7931': { price: 3235 }, '7995': { price: 4905 },
+    '2763': { price: 1220 }, '2768': { price: 6359 }, '3023': { price: 1944 }, '3076': { price: 2756 }, '3562': { price: 1585 },
+    '7464': { price: 1607 }, '7483': { price: 3425 }, '8001': { price: 2042 }, '8031': { price: 6381 }, '8058': { price: 5475 },
+    '8130': { price: 3075 }, '9837': { price: 1915 }, '9882': { price: 1546 }, '9986': { price: 2658 },
+    '4502': { price: 5802 }, '4503': { price: 2587 }, '4536': { price: 1826 }, '4540': { price: 3844 },
+    '3943': { price: 1391 },
+    '7811': { price: 1772 }, '7820': { price: 810 }, '7921': { price: 3835 }, '7949': { price: 2626 }, '7966': { price: 4575 }, '7994': { price: 2550 },
+    '7164': { price: 3190 }, '8424': { price: 4356 }, '8439': { price: 2071 }, '8584': { price: 4130 }, '8593': { price: 1470 },
+    '2124': { price: 852 }, '2136': { price: 1450 }, '2154': { price: 1808 }, '2163': { price: 1950 }, '2169': { price: 1835 },
+    '2379': { price: 2098 }, '2391': { price: 1253 }, '2393': { price: 2375 }, '2475': { price: 1532 }, '2483': { price: 1797 },
+    '2498': { price: 3085 }, '4318': { price: 860 }, '4345': { price: 921 }, '4659': { price: 4415 }, '4848': { price: 1704 },
+    '6073': { price: 1515 }, '6196': { price: 1400 }, '6539': { price: 985 }, '9639': { price: 2148 },
+    '9757': { price: 1164 }, '9769': { price: 2386 }, '9795': { price: 2418 },
+    '5105': { price: 3762 }, '5184': { price: 4115 },
+    '5334': { price: 7516 }, '5357': { price: 1799 }, '5393': { price: 2895 }, '7943': { price: 3360 },
 };
 
-// STOCKS を code でルックアップ
 const STOCK_MAP = Object.fromEntries(STOCKS.map(s => [s.code, s]));
-
 let stockData    = {};
-let dataSource   = 'static'; // 'yahoo' | 'stooq' | 'static'
+let dataSource   = 'static';
 let currentFilter = 'all';
-
-// ─── データ取得 ───────────────────────────────────────────
 
 function fetchWithTimeout(url, ms = 10000) {
     const ctrl  = new AbortController();
@@ -375,16 +406,11 @@ function fetchWithTimeout(url, ms = 10000) {
 // 利回りは常に 年間配当 ÷ 現在株価 × 100 で再計算
 function applyDataJson(jsonStocks) {
     Object.entries(jsonStocks).forEach(([code, d]) => {
-        const price = d.price ?? null;
+        const price  = d.price ?? null;
         const annDiv = STOCK_MAP[code]?.annualDividend ?? 0;
         const yieldVal = (price != null && price > 0 && annDiv > 0)
-            ? (annDiv / price) * 100
-            : null;
-        stockData[code] = {
-            price,
-            yield:  yieldVal,
-            change: d.change ?? 0,
-        };
+            ? (annDiv / price) * 100 : null;
+        stockData[code] = { price, yield: yieldVal, change: d.change ?? 0 };
     });
 }
 
@@ -425,21 +451,18 @@ async function fetchAllStocks() {
     STOCKS.forEach(s => {
         const p = STATIC_DATA[s.code]?.price ?? null;
         const yieldVal = (p != null && p > 0 && s.annualDividend > 0)
-            ? (s.annualDividend / p) * 100
-            : null;
+            ? (s.annualDividend / p) * 100 : null;
         stockData[s.code] = { price: p, yield: yieldVal, change: 0 };
     });
     dataSource = 'static';
     document.getElementById('lastUpdated').textContent = '参考値を表示中（GitHub Actions が未実行）';
     document.getElementById('errorBanner').innerHTML   =
         `<div class="error-banner">⚠️ data.json が見つかりません。<br>GitHub Actions が実行されると自動更新されます。</div>`;
-
     icon.classList.remove('spinning');
     btn.disabled = false;
     renderStocks();
 }
 
-// ─── フィルタリング ───────────────────────────────────────
 function filterStocks(filter, btn) {
     currentFilter = filter;
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -447,24 +470,23 @@ function filterStocks(filter, btn) {
     renderStocks();
 }
 
-// ─── 描画 ─────────────────────────────────────────────────
 function renderStocks() {
-    // 達成カウント
+    document.getElementById('totalCount').textContent = STOCKS.length;
+
     let achievedCount = 0;
     STOCKS.forEach(s => {
         const d = stockData[s.code];
-        if (d?.yield != null && d.yield >= s.targetYield) achievedCount++;
+        if (d?.yield != null && d.yield >= s.targetYield && s.targetYield < 90) achievedCount++;
     });
     document.getElementById('achievedCount').textContent = achievedCount;
     document.getElementById('achievedRate').textContent  =
         Math.round(achievedCount / STOCKS.length * 100) + '%';
 
-    // フィルタ
     let filtered = STOCKS;
     if (currentFilter === 'achieved') {
         filtered = STOCKS.filter(s => {
             const d = stockData[s.code];
-            return d?.yield != null && d.yield >= s.targetYield;
+            return d?.yield != null && d.yield >= s.targetYield && s.targetYield < 90;
         });
     } else if (currentFilter !== 'all') {
         filtered = STOCKS.filter(s => s.industry === currentFilter || s.type === currentFilter);
@@ -475,28 +497,28 @@ function renderStocks() {
         return;
     }
 
-    // データソースバッジ
     const srcLabel = { yahoo: 'YF', stooq: 'Stooq', static: '参考値' };
     const srcClass = { yahoo: 'source-yahoo', stooq: 'source-stooq', static: 'source-static' };
     const srcBadge = `<span class="source-badge ${srcClass[dataSource] ?? 'source-static'}">${srcLabel[dataSource] ?? '参考値'}</span>`;
 
     const html = filtered.map(stock => {
-        const d         = stockData[stock.code] || {};
-        const price     = d.price != null ? Math.round(d.price).toLocaleString('ja-JP') : '---';
-        const yieldVal  = d.yield  != null ? d.yield  : null;
-        const yieldStr  = yieldVal != null ? yieldVal.toFixed(2) + '%' : '---';
-        const changeVal = d.change ?? 0;
-        const isAchieved = yieldVal != null && yieldVal >= stock.targetYield;
-        const barPct    = yieldVal != null ? Math.min(Math.round(yieldVal / stock.targetYield * 100), 100) : 0;
-        const typeClass = stock.type === 'ディフェンシブ' ? 'tag-defensive' : 'tag-cyclical';
+        const d          = stockData[stock.code] || {};
+        const price      = d.price != null ? Math.round(d.price).toLocaleString('ja-JP') : '---';
+        const yieldVal   = d.yield  != null ? d.yield  : null;
+        const yieldStr   = yieldVal != null ? yieldVal.toFixed(2) + '%' : '---';
+        const changeVal  = d.change ?? 0;
+        const isAchieved = yieldVal != null && stock.targetYield < 90 && yieldVal >= stock.targetYield;
+        const barPct     = (yieldVal != null && stock.targetYield > 0 && stock.targetYield < 90)
+            ? Math.min(Math.round(yieldVal / stock.targetYield * 100), 100) : 0;
+        const typeClass  = stock.type === 'ディフェンシブ' ? 'tag-defensive' : 'tag-cyclical';
 
-        // 騰落率バッジ
         let changeClass = 'flat', changeSign = '';
         if (changeVal > 0) { changeClass = 'up';   changeSign = '+'; }
         if (changeVal < 0) { changeClass = 'down'; }
         const changeBadge = d.change != null
-            ? `<span class="change-pct ${changeClass}">${changeSign}${changeVal.toFixed(2)}%</span>`
-            : '';
+            ? `<span class="change-pct ${changeClass}">${changeSign}${changeVal.toFixed(2)}%</span>` : '';
+
+        const targetStr = stock.targetYield >= 90 ? '未設定' : stock.targetYield.toFixed(1) + '%';
 
         return `
         <div class="stock-card ${isAchieved ? 'achieved' : ''}">
@@ -518,7 +540,7 @@ function renderStocks() {
                 </div>
                 <div class="metric">
                     <div class="metric-label">期待利回り</div>
-                    <div class="metric-value yield-target">${stock.targetYield.toFixed(1)}%</div>
+                    <div class="metric-value yield-target">${targetStr}</div>
                 </div>
             </div>
             <div class="yield-bar-wrap">
@@ -529,21 +551,9 @@ function renderStocks() {
                 <span class="tag ${typeClass}">${stock.type}</span>
             </div>
             <div class="ext-links">
-                <a class="ext-link irbank"
-                   href="https://irbank.net/${stock.code}/results"
-                   target="_blank" rel="noopener noreferrer">
-                   📊 IRバンク
-                </a>
-                <a class="ext-link buffett"
-                   href="https://www.buffett-code.com/company/${stock.code}"
-                   target="_blank" rel="noopener noreferrer">
-                   🏦 バフェット
-                </a>
-                <a class="ext-link kabutan"
-                   href="https://kabutan.jp/stock/?code=${stock.code}"
-                   target="_blank" rel="noopener noreferrer">
-                   📈 株探
-                </a>
+                <a class="ext-link irbank"  href="https://irbank.net/${stock.code}/results" target="_blank" rel="noopener noreferrer">📊 IRバンク</a>
+                <a class="ext-link buffett" href="https://www.buffett-code.com/company/${stock.code}" target="_blank" rel="noopener noreferrer">🏦 バフェット</a>
+                <a class="ext-link kabutan" href="https://kabutan.jp/stock/?code=${stock.code}" target="_blank" rel="noopener noreferrer">📈 株探</a>
             </div>
         </div>`;
     }).join('');
@@ -551,9 +561,8 @@ function renderStocks() {
     document.getElementById('stockList').innerHTML = html;
 }
 
-// ─── 起動 ─────────────────────────────────────────────────
 fetchAllStocks();
-setInterval(fetchAllStocks, 5 * 60 * 1000); // 5分おとに自動更新
+setInterval(fetchAllStocks, 5 * 60 * 1000);
 </script>
 </body>
 </html>
