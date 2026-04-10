@@ -415,8 +415,9 @@ const GAKUCHO_CODES = new Set([
 let stockData      = {};
 let dataSource     = 'static';
 let dataUpdatedAt  = null;   // data.json の updated 文字列
-let currentFilter  = 'all';
-let currentType    = null;   // 'ディフェンシブ' | '景気敏感' | null
+let filterTop      = 'all';  // 'all' | 'achieved'
+let filterType     = null;   // null | 'ディフェンシブ' | '景気敏感'
+let filterIndustry = null;   // null | 業種名
 
 function fetchWithTimeout(url, ms = 10000) {
     const ctrl  = new AbortController();
@@ -495,45 +496,60 @@ async function fetchAllStocks() {
     renderStocks();
 }
 
-// 第1段：すべて / 達成
+// 第1段：すべて（全リセット） / 達成（AND条件として追加）
 function setTopFilter(filter, btn) {
-    currentFilter = filter;
-    currentType   = null;
-    // 第1段アクティブ、第2段・第3段クリア
+    if (filter === 'all') {
+        // すべて → 全フィルタ解除
+        filterTop = 'all';
+        filterType = null;
+        filterIndustry = null;
+        document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('type-active'));
+        document.getElementById('filterRowInd').style.display = 'none';
+    } else {
+        // 達成 → 達成条件をON（タイプ・業種フィルタは維持）
+        filterTop = filter;
+    }
     document.querySelectorAll('.filter-row-top .filter-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('active', 'type-active'));
-    btn.classList.add('active');
-    // 第3段を非表示
-    const row3 = document.getElementById('filterRowInd');
-    row3.style.display = 'none';
+    document.getElementById(filterTop === 'all' ? 'tabAll' : 'tabAchieved').classList.add('active');
     renderStocks();
 }
 
-// 第2段：ディフェンシブ / 景気敏感
+// 第2段：ディフェンシブ / 景気敏感（AND条件として追加、再クリックで解除）
 function setTypeFilter(type, btn) {
-    currentFilter = type;
-    currentType   = type;
-    // 第1段クリア、第2段アクティブ
-    document.querySelectorAll('.filter-row-top .filter-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('active', 'type-active'));
-    btn.classList.add('type-active');
-    // 第3段：このタイプの業種を動的生成
-    const industries = [...new Set(
-        STOCKS.filter(s => s.type === type).map(s => s.industry)
-    )].sort((a, b) => a.localeCompare(b, 'ja'));
-    const row3 = document.getElementById('filterRowInd');
-    row3.innerHTML = industries.map(ind =>
-        `<button class="filter-tab" onclick="setIndustryFilter('${ind}', this)">${ind}</button>`
-    ).join('');
-    row3.style.display = 'flex';
+    if (filterType === type) {
+        // 同じボタン再クリック → タイプ・業種フィルタ解除
+        filterType = null;
+        filterIndustry = null;
+        btn.classList.remove('type-active');
+        document.getElementById('filterRowInd').style.display = 'none';
+    } else {
+        filterType = type;
+        filterIndustry = null;
+        document.querySelectorAll('.filter-row-type .filter-tab').forEach(t => t.classList.remove('type-active'));
+        btn.classList.add('type-active');
+        // 第3段：このタイプの業種を動的生成
+        const industries = [...new Set(
+            STOCKS.filter(s => s.type === type).map(s => s.industry)
+        )].sort((a, b) => a.localeCompare(b, 'ja'));
+        const row3 = document.getElementById('filterRowInd');
+        row3.innerHTML = industries.map(ind =>
+            `<button class="filter-tab" onclick="setIndustryFilter('${ind}', this)">${ind}</button>`
+        ).join('');
+        row3.style.display = 'flex';
+    }
     renderStocks();
 }
 
-// 第3段：業種
+// 第3段：業種（AND条件として追加、再クリックで解除）
 function setIndustryFilter(industry, btn) {
-    currentFilter = industry;
-    document.querySelectorAll('#filterRowInd .filter-tab').forEach(t => t.classList.remove('active'));
-    btn.classList.add('active');
+    if (filterIndustry === industry) {
+        filterIndustry = null;
+        btn.classList.remove('active');
+    } else {
+        filterIndustry = industry;
+        document.querySelectorAll('#filterRowInd .filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+    }
     renderStocks();
 }
 
@@ -549,14 +565,19 @@ function renderStocks() {
     document.getElementById('achievedRate').textContent  =
         Math.round(achievedCount / STOCKS.length * 100) + '%';
 
+    // 3段階AND条件フィルタ
     let filtered = STOCKS;
-    if (currentFilter === 'achieved') {
-        filtered = STOCKS.filter(s => {
+    if (filterTop === 'achieved') {
+        filtered = filtered.filter(s => {
             const d = stockData[s.code];
-            return d?.yield != null && d.yield >= s.targetYield && s.targetYield < 90;
+            return d?.yield != null && s.targetYield < 90 && d.yield >= s.targetYield;
         });
-    } else if (currentFilter !== 'all') {
-        filtered = STOCKS.filter(s => s.industry === currentFilter || s.type === currentFilter);
+    }
+    if (filterType !== null) {
+        filtered = filtered.filter(s => s.type === filterType);
+    }
+    if (filterIndustry !== null) {
+        filtered = filtered.filter(s => s.industry === filterIndustry);
     }
 
     if (filtered.length === 0) {
