@@ -42,6 +42,7 @@
         .achieved-badge { background: #00b84c; color: white; padding: 5px 12px; border-radius: 14px; font-size: 13px; font-weight: 800; display: none; letter-spacing: 1px; animation: pop 0.3s ease; }
         .stock-card.achieved .achieved-badge { display: inline-block; }
         .gakucho-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 8px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; margin-left: 5px; vertical-align: middle; }
+        .update-time { display: block; font-size: 9px; color: #f57f17; font-weight: 600; margin-top: 2px; }
         @keyframes pop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .stock-metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .metric { text-align: center; background: #f7f8fa; border-radius: 10px; padding: 8px 4px; }
@@ -550,7 +551,7 @@ function renderStocks() {
             </div>
             <div class="stock-metrics">
                 <div class="metric">
-                    <div class="metric-label">現在値</div>
+                    <div class="metric-label">現在値${dataUpdatedAt ? `<span class="update-time">${dataUpdatedAt}</span>` : ''}</div>
                     <div class="metric-value">¥${price}</div>
                 </div>
                 <div class="metric">
@@ -580,8 +581,19 @@ function renderStocks() {
     document.getElementById('stockList').innerHTML = html;
 }
 
-fetchAllStocks();
-setInterval(fetchAllStocks, 5 * 60 * 1000);
+// 起動時は静的データを即描画（更新はボタンのみ）
+(function initStatic() {
+    STOCKS.forEach(s => {
+        const p = STATIC_DATA[s.code]?.price ?? null;
+        const yieldVal = (p != null && p > 0 && s.annualDividend > 0)
+            ? (s.annualDividend / p) * 100 : null;
+        stockData[s.code] = { price: p, yield: yieldVal, change: 0 };
+    });
+    dataSource    = 'static';
+    dataUpdatedAt = null;
+    document.getElementById('lastUpdated').textContent = '更新ボタンで最新データを取得できます';
+    renderStocks();
+})();
 </script>
 </body>
 </html>
