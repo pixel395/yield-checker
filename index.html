@@ -652,7 +652,9 @@ function renderStocks() {
 }
 
 // 起動時は静的データを即描画（更新はボタンのみ）
-(function initStatic() {
+// ── 起動時処理：STATIC_DATAを即描画 → data.jsonをサイレント取得して上書き
+(async function initLoad() {
+    // ① まず STATIC_DATA で即座に描画（スピナーなし）
     STOCKS.forEach(s => {
         const p = STATIC_DATA[s.code]?.price ?? null;
         const yieldVal = (p != null && p > 0 && s.annualDividend > 0)
@@ -661,8 +663,39 @@ function renderStocks() {
     });
     dataSource    = 'static';
     dataUpdatedAt = null;
-    document.getElementById('lastUpdated').textContent = '更新ボタンで最新データを取得できます';
+    document.getElementById('lastUpdated').textContent = '前回データ読み込み中...';
     renderStocks();
+
+    // ② バックグラウンドで data.json を取得（ボタン無効化・スピナーなし）
+    try {
+        const res = await fetchWithTimeout('./data.json?_=' + Date.now(), 10000);
+        if (res.ok) {
+            const data = await res.json();
+            if (data?.stocks && Object.keys(data.stocks).length > 0) {
+                applyDataJson(data.stocks);
+                // data.json にない銘柄は STATIC_DATA で補完
+                STOCKS.forEach(s => {
+                    if (!stockData[s.code]) {
+                        const p = STATIC_DATA[s.code]?.price ?? null;
+                        const yv = (p != null && p > 0 && s.annualDividend > 0)
+                            ? (s.annualDividend / p) * 100 : null;
+                        stockData[s.code] = { price: p, yield: yv, change: 0 };
+                    }
+                });
+                dataSource = data.source ?? 'stooq';
+                dataUpdatedAt = data.updated
+                    ? new Date(data.updated).toLocaleString('ja-JP', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+                    : new Date().toLocaleString('ja-JP', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                document.getElementById('lastUpdated').textContent =
+                    `前回更新: ${dataUpdatedAt}　（更新ボタンで再取得）`;
+                renderStocks();
+                return;
+            }
+        }
+    } catch (e) {
+        // サイレント失敗 → STATIC_DATA のまま表示継続
+    }
+    document.getElementById('lastUpdated').textContent = '参考値を表示中（更新ボタンで最新データを取得）';
 })();
 </script>
 </body>
