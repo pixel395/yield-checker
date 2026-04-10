@@ -17,7 +17,7 @@ jobs:
       - name: Fetch stock data and write data.json
         run: |
           python3 - <<'PYEOF'
-          import json, csv, urllib.request, io, time, os
+          import json, urllib.request, time, os
 
           ANNUAL_DIVIDENDS = {
               '9029': 50,  '9057': 96,  '9069': 50,  '9072': 74,
@@ -87,42 +87,39 @@ jobs:
               except Exception as e:
                   print(f'Could not load existing data.json: {e}')
 
-          # 数字コードのみ Stooq に送る（545A 等は除外）
+          # 数字コードのみ Stooq に送る（545A 等は除外）、個別フェッチ
           codes = sorted([c for c in ANNUAL_DIVIDENDS if c.isdigit()])
-          BATCH = 40
           new_prices = {}
           fetch_success = 0
+          fetch_fail = 0
 
-          for i in range(0, len(codes), BATCH):
-              batch = codes[i:i+BATCH]
-              syms = ','.join(c + '.jp' for c in batch)
-              url = f'https://stooq.com/q/l/?s={syms}&f=sd2t2ohlcv&e=csv'
+          for code in codes:
+              url = f'https://stooq.com/q/l/?s={code}.jp&f=sd2t2ohlcv&e=csv'
               try:
                   req = urllib.request.Request(url, headers={'User-Agent': UA})
-                  with urllib.request.urlopen(req, timeout=20) as resp:
-                      raw = resp.read().decode('utf-8')
-                  reader = csv.DictReader(io.StringIO(raw))
-                  for row in reader:
-                      sym = row.get('Symbol', '').upper().replace('.JP', '')
-                      close_val = row.get('Close', '') or row.get('Last', '')
-                      if not close_val or close_val in ('N/D', ''):
-                          continue
+                  with urllib.request.urlopen(req, timeout=15) as resp:
+                      raw = resp.read().decode('utf-8').strip()
+                  # Format: CODE.JP,DATE,TIME,OPEN,HIGH,LOW,CLOSE,VOLUME
+                  parts = raw.split(',')
+                  if len(parts) >= 7 and parts[-2] not in ('N/D', ''):
                       try:
-                          price = float(close_val)
+                          price = float(parts[-2])
+                          if price > 0:
+                              new_prices[code] = price
+                              fetch_success += 1
                       except ValueError:
-                          continue
-                      if price > 0:
-                          new_prices[sym] = price
-                  fetch_success += 1
-                  print(f'Batch {i//BATCH+1}: got {len(new_prices)} prices so far')
+                          fetch_fail += 1
+                  else:
+                      fetch_fail += 1
               except Exception as e:
-                  print(f'Batch {i//BATCH+1} failed: {e}')
-              time.sleep(2)
+                  print(f'  {code} failed: {e}')
+                  fetch_fail += 1
+              time.sleep(0.3)
 
-          print(f'Total fetched: {len(new_prices)} prices from {fetch_success} batches')
+          print(f'Total fetched: {len(new_prices)} prices (success={fetch_success}, fail={fetch_fail})')
 
           # 新しい価格で既存データを上書き、取得できなかったものは既存値を保持
-          stocks_out = dict(existing_stocks)  # 既存データをコピー
+          stocks_out = dict(existing_stocks)
           updated_count = 0
           for code, ann_div in ANNUAL_DIVIDENDS.items():
               if code in new_prices:
@@ -148,4 +145,5 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           git diff --cached --quiet || git commit -m "chore: update stock data $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git pull --rebase origin main
           git push

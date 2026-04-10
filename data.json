@@ -1,6 +1,6 @@
 {
-  "updated": "2026-04-10T21:37:40Z",
-  "source": "static",
+  "updated": "2026-04-10T21:47:26Z",
+  "source": "stooq",
   "stocks": {
     "9029": {
       "price": 1892,
@@ -750,6 +750,166 @@
     "7943": {
       "price": 3360,
       "yield": 3.3929,
+      "change": 0
+    },
+    "7292": {
+      "price": 6920.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6678": {
+      "price": 2288.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6745": {
+      "price": 2135.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6785": {
+      "price": 2835.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "9364": {
+      "price": 5603.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "7723": {
+      "price": 3010.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "7749": {
+      "price": 2993.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "2269": {
+      "price": 3978.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "2317": {
+      "price": 421.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "3771": {
+      "price": 1754.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "3817": {
+      "price": 4810.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4752": {
+      "price": 1612.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "9687": {
+      "price": 4430.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4719": {
+      "price": 3475.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "3901": {
+      "price": 1560.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "1723": {
+      "price": 2474.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "1976": {
+      "price": 1928.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "1980": {
+      "price": 2884.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6322": {
+      "price": 1572.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6454": {
+      "price": 1646.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "6246": {
+      "price": 1890.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4401": {
+      "price": 3902.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4097": {
+      "price": 1090.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "7438": {
+      "price": 1535.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "9960": {
+      "price": 4010.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "7839": {
+      "price": 1684.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "2185": {
+      "price": 1900.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4641": {
+      "price": 2632.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "4792": {
+      "price": 1646.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "5186": {
+      "price": 4715.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "5388": {
+      "price": 1315.0,
+      "yield": 0.0,
+      "change": 0
+    },
+    "5011": {
+      "price": 2188.0,
+      "yield": 0.0,
       "change": 0
     }
   }
